@@ -1,6 +1,6 @@
 ## Needle codebase walkthrough
 
-Now click the files panel on the left side. You should be able to see the following files: 
+These files forms the library until now 
 
 - `needle/python/needle`
     - `__init__.py`
