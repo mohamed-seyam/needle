@@ -6,6 +6,8 @@ These files forms the library until now
     - `__init__.py`
     - `auograd.py`
     - `ops.py`
+    - `nn.py`
+    - `init.py`
 
 framework is called needle. Needle stands for **ne**cessary **e**lements of **d**eep **le**arning.
 You can also viewed it as a sewing needle that threads through clothes
