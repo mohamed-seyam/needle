@@ -439,9 +439,83 @@ class Tensor(Value):
 
 
 def compute_gradient_of_variables(output_tensor, out_grad):
-    """Take gradient of output node with respect to each node in node_list.
+    """
+    Computes the gradient of the `output_tensor` with respect to each node in the computational graph.
 
-    Store the computed result in the grad field of each Variable.
+    This function performs reverse-mode automatic differentiation, commonly known as backpropagation, 
+    to compute the gradients of a given output node with respect to all the variables (nodes) in the 
+    computational graph. The gradients are stored in the `grad` attribute of each node (Variable).
+
+    Parameters:
+    -----------
+    output_tensor : Tensor
+        The output node of the computational graph for which the gradient is to be computed.
+        
+    out_grad : Tensor
+        The gradient of the loss function with respect to the `output_tensor`. 
+        This is typically set to 1 when calculating gradients for scalar loss functions.
+
+    Returns:
+    --------
+    None
+        The gradients are computed and stored in-place in the `grad` attribute of each node.
+
+    Detailed Explanation:
+    ---------------------
+    1. The function initializes a dictionary (`node_to_output_grads_list`) that maps each node to 
+       a list of gradient contributions from each of its output nodes.
+       
+    2. It performs a reverse topological sort of the computational graph starting from the `output_tensor`.
+       
+    3. It then iterates over the nodes in reverse topological order, computing the gradient for each node.
+       - If the node is an operation node (i.e., it has a non-None `op`), it calls the `gradient_as_tuple` 
+         method to calculate the gradient with respect to its inputs.
+       - The computed gradients are then propagated backward through the graph, updating the `grad` attribute 
+         of each node.
+       
+    4. For each node, the gradient contributions from all paths are summed up using `sum_node_list`, and 
+       this final gradient is stored in the node's `grad` attribute.
+
+    Notes:
+    ------
+    - The function assumes that the computational graph is acyclic and that the `find_topo_sort` function 
+      returns a valid topological ordering.
+      
+    - This function is designed to work with scalar loss functions. If you are working with vector-valued 
+      outputs, you may need to adjust the `out_grad` accordingly.
+
+    Example Usage:
+    --------------
+    ```python
+    # Assuming Tensor, Variable, and the relevant operations are defined
+
+    # Create a simple computational graph
+    a = Variable(np.array(2.0), name="a")
+    b = Variable(np.array(3.0), name="b")
+    c = a * b  # Multiplication operation
+    d = c + b  # Addition operation
+    output = d.sum()  # Sum operation to produce a scalar output
+
+    a (2.0) ----
+                \
+                * ---- c = a * b (6.0) ----
+                /                            \
+    b (3.0) ----                              + ---- d = c + b (9.0) ---- sum() ---- output (9.0)
+
+
+
+    # Initialize the gradient of the loss with respect to the output (usually 1)
+    out_grad = np.array(1.0)
+
+    # Compute gradients with respect to each node
+    compute_gradient_of_variables(output, out_grad)
+
+    # Access gradients
+    print("Gradient of a:", a.grad)  # Should print the gradient of the output with respect to 'a'
+    print("Gradient of b:", b.grad)  # Should print the gradient of the output with respect to 'b'
+    print("Gradient of c:", c.grad)  # Should print the gradient of the output with respect to 'c'
+    print("Gradient of d:", d.grad)  # Should print the gradient of the output with respect to 'd'
+    ```
     """
     # a map from node to a list of gradient contributions from each output node
     node_to_output_grads_list: Dict[Tensor, List[Tensor]] = {}
@@ -452,10 +526,47 @@ def compute_gradient_of_variables(output_tensor, out_grad):
 
     # Traverse graph in reverse topological order given the output_node that we are taking gradient wrt.
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
+    
+    # node_to_output_grad_list
+    # {f: [out_grad from loss],
+    # d: [partial grad from f],
+    # e: [partial grad from f],
+    # c: [grad from d, grad from e],
+    # a: [partial grad from c],
+    # b: [partial grad from c]
+    # }
 
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    # outer loop to get gradient of each node 
+    # final states of grad field of each node
+    # f.grad = out_grad from loss
+    # d.grad = partial grad from f
+    # e.grad = partial grad from f
+    # c.grad = sum (grad from d, grad from e)
+    # a.grad = partial grad from c
+    # b.grad = partial grad from c
+
+    #inner loop to get gradient of each node with respect to it is inputs vi = vi+1_bar * partial vi+1 partial vi
+
+    print(len(reverse_topo_order))
+
+   
+    for node in reverse_topo_order:
+      if node_to_output_grads_list.get(node) is not None:
+        node.grad = sum_node_list(node_to_output_grads_list[node])
+        if node.op is not None:
+          input_grads = node.op.gradient_as_tuple(node.grad , node)
+          for idx, inp in enumerate(node.inputs):
+            if node_to_output_grads_list.get(inp) is None:
+              node_to_output_grads_list[inp] = []
+              node_to_output_grads_list[inp].append(input_grads[idx])
+            else:
+              node_to_output_grads_list[inp].append(input_grads[idx])
+        else:
+          continue
+          
+      else:
+        continue
+
 
 
 def find_topo_sort(node_list: List[Value]) -> List[Value]:
@@ -466,26 +577,33 @@ def find_topo_sort(node_list: List[Value]) -> List[Value]:
     after all its predecessors are traversed due to post-order DFS, we get a topological
     sort.
     """
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+
+    N = len(node_list)
+    visited = set()
+    topo_order = []
+    for node in node_list:
+      topo_sort_dfs(node, visited, topo_order)
+    return topo_order
 
 
 def topo_sort_dfs(node, visited, topo_order):
     """Post-order DFS"""
-    ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
-    ### END YOUR SOLUTION
+    
+    if id(node) in visited:
+      return 
+    visited.add(id(node))
+    for chld in node.inputs:
+      topo_sort_dfs(chld, visited, topo_order)
+    topo_order.append(node)
 
 
 ##############################
 ####### Helper Methods #######
 ##############################
 
-
 def sum_node_list(node_list):
     """Custom sum function in order to avoid create redundant nodes in Python sum implementation."""
     from operator import add
     from functools import reduce
-
     return reduce(add, node_list)
+
