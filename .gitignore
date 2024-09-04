@@ -1,2 +1,8 @@
 # virtual environment
 env
+
+# Python byte-compiled / optimized / DLL files
+__pycache__/
+
+# test notebooks
+nbs
