@@ -3,6 +3,11 @@ env
 
 # Python byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*.egg-info/
 
 # test notebooks
 nbs
+
+# data 
+data
