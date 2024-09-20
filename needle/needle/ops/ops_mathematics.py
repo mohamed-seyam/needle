@@ -213,7 +213,6 @@ class BroadcastTo(TensorOp):
 def broadcast_to(a, shape):
     return BroadcastTo(shape)(a)
 
-
 class Summation(TensorOp):
     def __init__(self, axes: Optional[tuple] = None):
         self.axes = axes
@@ -223,23 +222,25 @@ class Summation(TensorOp):
 
     def gradient(self, out_grad, node):
         node_shape = node.inputs[0].shape
-        grad_shape = out_grad.shape
         
-        # for example if you have input has shape (2,3) and the grad has shape (1,3)
-        # you need to broadcast the gradient to the shape of the input
-
-        if self.axes == None : 
-            # this means we need to broadcast the gradient to the shape of the input
+        if self.axes is None:
+            # If no axes are provided, sum reduces to a scalar, broadcast to the original shape
             return out_grad.broadcast_to(node_shape)
         
-        # define the new shape based on the axis 
-        _temp_shape = list(grad_shape)  # convert the shape to a list
-        for axis in self.axes:
-            _temp_shape.insert(axis, 1)   # insert 1 at the axis position so when performing the broadcast the shape will be the same as the input
+        # Normalize axes (handle negative axes)
+        axes = self.axes if isinstance(self.axes, tuple) else (self.axes,)
+        axes = tuple([axis if axis >= 0 else axis + len(node_shape) for axis in axes])
+
+        # Create a shape to broadcast to (inserting 1s where dimensions were reduced)
+        grad_shape = list(out_grad.shape)
+        for axis in sorted(axes):
+            grad_shape.insert(axis, 1)
+
+        new_shape = tuple(grad_shape)
         
-        new_shape = tuple(_temp_shape)
+        # Reshape and broadcast the gradient to the original input shape
         return out_grad.reshape(new_shape).broadcast_to(node_shape)
-        
+
         
 
 
@@ -309,9 +310,8 @@ class ReLU(TensorOp):
         return array_api.maximum(a, 0)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        a = node.inputs[0]
+        return out_grad if a > 0 else 0
 
 
 def relu(a):

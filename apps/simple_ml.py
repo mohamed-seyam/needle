@@ -62,3 +62,44 @@ def softmax_loss(Z: ndl.Tensor, y_one_hot: ndl.Tensor) -> ndl.Tensor:
     log_sum_exp_z = ndl.log(sum_exp_z) # (6000,)
     return  (log_sum_exp_z - (y_one_hot * Z).sum(1,)).sum() / Z.shape[0]
     
+
+def nn_epoch(X: np.ndarray, y: np.ndarray, 
+             W1: ndl.Tensor, W2: ndl.Tensor, 
+             lr: float=0., batch: int =100) -> Tuple[ndl.Tensor, ndl.Tensor]:
+    """Run a single epoch of SGD for a two-layer neural network defined by the
+    weights W1 and W2 (with no bias terms):
+        logits = ReLU(X * W1) * W1
+    The function should use the step size lr, and the specified batch size (and
+    again, without randomizing the order of X).
+
+    Args:
+        X (np.ndarray[np.float32]): 2D input array of size
+            (num_examples x input_dim).
+        y (np.ndarray[np.uint8]): 1D class label array of size (num_examples,)
+        W1 (ndl.Tensor[np.float32]): 2D array of first layer weights, of shape
+            (input_dim, hidden_dim)
+        W2 (ndl.Tensor[np.float32]): 2D array of second layer weights, of shape
+            (hidden_dim, num_classes)
+        lr (float): step size (learning rate) for SGD
+        batch (int): size of SGD mini-batch
+
+    Returns:
+        Tuple: (W1, W2)
+            W1: ndl.Tensor[np.float32]
+            W2: ndl.Tensor[np.float32]
+    """
+    logits = ndl.ReLU(X @ W1) @ W1  # (num_examples, num_classes)
+    loss, err = loss_err(logits, y)
+    W1 -= lr * loss
+    W2 -= lr * loss 
+    return W1, w2
+
+
+
+
+def loss_err(h, y):
+    """Helper function to compute both loss and error"""
+    y_one_hot = np.zeros((y.shape[0], h.shape[-1]))
+    y_one_hot[np.arange(y.size), y] = 1
+    y_ = ndl.Tensor(y_one_hot)
+    return softmax_loss(h, y_).numpy(), np.mean(h.numpy().argmax(axis=1) != y)
