@@ -42,7 +42,7 @@ def parse_mnist(image_filesname: str, label_filename: str) -> Tuple[np.ndarray, 
 
     return X, y
 
-def softmax_loss(Z: ndl.Tensor, y_one_hot: ndl.Tensor):
+def softmax_loss(Z: ndl.Tensor, y_one_hot: ndl.Tensor) -> ndl.Tensor:
     """Return softmax loss.  for now no need to worry about "nicely" scaling the numerical properties
     of the log-sum-exp computation, but can just compute this directly.
 
