@@ -88,13 +88,20 @@ def nn_epoch(X: np.ndarray, y: np.ndarray,
             W1: ndl.Tensor[np.float32]
             W2: ndl.Tensor[np.float32]
     """
-    logits = ndl.ReLU(X @ W1) @ W1  # (num_examples, num_classes)
-    loss, err = loss_err(logits, y)
-    W1 -= lr * loss
-    W2 -= lr * loss 
-    return W1, w2
-
-
+    
+    iterations = (y.size + batch - 1) // batch
+    for i in range(iterations):
+        x = ndl.Tensor(X[i * batch : (i+1) * batch, :])
+        Z = ndl.relu(x @ W1) @ W2
+        yy = y[i * batch : (i+1) * batch]
+        y_one_hot = np.zeros((batch, y.max() + 1))
+        y_one_hot[np.arange(batch), yy] = 1
+        y_one_hot = ndl.Tensor(y_one_hot)
+        loss = softmax_loss(Z, y_one_hot)
+        loss.backward()
+        W1 = ndl.Tensor(W1.realize_cached_data() - lr * W1.grad.realize_cached_data())
+        W2 = ndl.Tensor(W2.realize_cached_data() - lr * W2.grad.realize_cached_data())
+    return W1, W2
 
 
 def loss_err(h, y):

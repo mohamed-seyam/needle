@@ -221,7 +221,7 @@ class Summation(TensorOp):
         return array_api.sum(a, axis=self.axes)
 
     def gradient(self, out_grad, node):
-        node_shape = node.inputs[0].shape
+        node_shape = node.inputs[0].shape # shape of the input before summation
         
         if self.axes is None:
             # If no axes are provided, sum reduces to a scalar, broadcast to the original shape
@@ -311,7 +311,8 @@ class ReLU(TensorOp):
 
     def gradient(self, out_grad, node):
         a = node.inputs[0]
-        return out_grad if a > 0 else 0
+        grad_mask = a.numpy() > 0
+        return out_grad * Tensor(grad_mask)
 
 
 def relu(a):
