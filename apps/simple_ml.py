@@ -41,3 +41,24 @@ def parse_mnist(image_filesname: str, label_filename: str) -> Tuple[np.ndarray, 
         y = np.array(struct.unpack(f"{label_num}B", label_file.read()), dtype=np.uint8)
 
     return X, y
+
+def softmax_loss(Z: ndl.Tensor, y_one_hot: ndl.Tensor):
+    """Return softmax loss.  for now no need to worry about "nicely" scaling the numerical properties
+    of the log-sum-exp computation, but can just compute this directly.
+
+    Args:
+        Z (ndl.Tensor[np.float32]): 2D Tensor of shape
+            (batch_size, num_classes), containing the logit predictions for
+            each class.
+        y (ndl.Tensor[np.int8]): 2D Tensor of shape (batch_size, num_classes)
+            containing a 1 at the index of the true label of each example and
+            zeros elsewhere.
+
+    Returns:
+        Average softmax loss over the sample. (ndl.Tensor[np.float32])
+    """
+    exp_z = ndl.exp(Z)  # (6000,10)
+    sum_exp_z = exp_z.sum(1,) # (6000,)
+    log_sum_exp_z = ndl.log(sum_exp_z) # (6000,)
+    return  (log_sum_exp_z - (y_one_hot * Z).sum(1,)).sum() / Z.shape[0]
+    

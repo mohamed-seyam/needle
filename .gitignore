@@ -6,8 +6,9 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# test notebooks
+# test notebooks and helper pdfs
 nbs
+helper_pdfs
 
 # data 
 data
