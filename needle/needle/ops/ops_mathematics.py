@@ -187,27 +187,22 @@ class BroadcastTo(TensorOp):
         indices = [] # store the indices of the dimensions that need to be summed
         
         node_shape = node.inputs[0].shape
-        grad_shape = out_grad.shape
+        grad_shape = self.shape  # or out_grad.shape
 
-        if len(node_shape) == len(grad_shape):
-            # for example, if node_shape is (1, 3) and grad_shape is (3,3)
-            # we need to sum along the first dimension
-            for i in range(len(node_shape)):
-                if node_shape[i] != grad_shape[i]:
-                    indices.append(i)
-            return out_grad.sum(axes = tuple(indices)).reshape(node_shape)
-        
-        elif len(node_shape) < len(grad_shape):
-            # for example, if node_shape is (1,) and grad_shape is (3,3,3)
-            # we need to sum along the last dimension
-            for i in range(len(node_shape)):
-                if node_shape[i] < grad_shape[i]:
-                    indices.append(i) 
+        # Pad node_shape with ones on the left to match the length of grad shapes
+        len_diff = len(grad_shape) - len(node_shape)
+        node_shape_padded = (1,) * len_diff + node_shape
 
-            for k in range(len(node_shape), len(grad_shape)):
-                indices.append(k)
+        indices = []
 
-            return out_grad.sum(axes = tuple(indices)).reshape(node_shape)
+        for i in range(len(grad_shape)):
+            if node_shape_padded[i] == 1 and grad_shape[i] > 1:
+                indices.append(i)
+
+        if indices:
+            out_grad = out_grad.sum(axes = tuple(indices))
+
+        return out_grad.reshape(node_shape)
          
 
 def broadcast_to(a, shape):
