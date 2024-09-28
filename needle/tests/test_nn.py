@@ -1,5 +1,6 @@
 import numpy as np 
 import needle as ndl
+import needle.nn as nn
 
 def nn_linear_bias_init():
     np.random.seed(1337)
@@ -12,6 +13,7 @@ def nn_linear_weight_init():
     f = ndl.nn.Linear(7, 4)
     f.weight.cached_data
     return f.weight.cached_data
+
 
 
 def test_nn_linear_weight_init_1():
@@ -78,6 +80,21 @@ def relu_backward(*shape):
     x = get_tensor(*shape)
     (f(x) ** 2).sum().backward()
     return x.grad.cached_data
+
+def sequential_forward(batches=3):
+    np.random.seed(42)
+    f = nn.Sequential(nn.Linear(5, 8), nn.ReLU(), nn.Linear(8, 5))
+    x = get_tensor(batches, 5)
+    return f(x).cached_data
+
+
+def sequential_backward(batches=3):
+    np.random.seed(42)
+    f = nn.Sequential(nn.Linear(5, 8), nn.ReLU(), nn.Linear(8, 5))
+    x = get_tensor(batches, 5)
+    f(x).sum().backward()
+    return x.grad.cached_data
+
 
 def test_nn_linear_forward_1():
     np.testing.assert_allclose(
@@ -262,6 +279,38 @@ def test_nn_relu_backward_1():
     np.testing.assert_allclose(
         relu_backward(3, 2),
         np.array([[7.5, 2.7], [0.6, 0.2], [0.3, 6.7]], dtype=np.float32),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+
+
+def test_nn_sequential_forward_1():
+    print(sequential_forward(batches=3))
+    np.testing.assert_allclose(
+        sequential_forward(batches=3),
+        np.array(
+            [
+                [3.296263, 0.057031, 2.97568, -4.618432, -0.902491],
+                [2.465332, -0.228394, 2.069803, -3.772378, -0.238334],
+                [3.04427, -0.25623, 3.848721, -6.586399, -0.576819],
+            ],
+            dtype=np.float32,
+        ),
+        rtol=1e-5,
+        atol=1e-5,
+    )
+
+def test_nn_sequential_backward_1():
+    np.testing.assert_allclose(
+        sequential_backward(batches=3),
+        np.array(
+            [
+                [0.802697, -1.0971, 0.120842, 0.033051, 0.241105],
+                [-0.364489, 0.651385, 0.482428, 0.925252, -1.233545],
+                [0.802697, -1.0971, 0.120842, 0.033051, 0.241105],
+            ],
+            dtype=np.float32,
+        ),
         rtol=1e-5,
         atol=1e-5,
     )

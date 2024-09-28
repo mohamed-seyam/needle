@@ -88,12 +88,9 @@ class Linear(Module):
 
         self.weight = Parameter(init.kaiming_uniform(fan_in=in_features, fan_out=out_features, device = device, dtype = dtype, requires_grad = True))
         self.bias = Parameter(init.kaiming_uniform(fan_in=out_features, fan_out=1, device = device, dtype = dtype, requires_grad = True).transpose()) if bias else None
-        print("shape of bias", self.bias.shape)
-
         
-
     def forward(self, X: Tensor) -> Tensor:
-        out = X @ self.weight 
+        out = X.matmul(self.weight)
         if self.bias:
             out += self.bias.broadcast_to(out.shape)  # currently needle doesn't support implicit broadcasting
     
@@ -120,9 +117,11 @@ class Sequential(Module):
         self.modules = modules
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        out = x
+        for module in self.modules:
+            out = module(out)
+        return out 
+            
 
 
 class SoftmaxLoss(Module):
