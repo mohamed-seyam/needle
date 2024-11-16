@@ -100,9 +100,7 @@ class Linear(Module):
 
 class Flatten(Module):
     def forward(self, X):
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
 
 class ReLU(Module):
@@ -126,9 +124,7 @@ class Sequential(Module):
 
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
 
 class BatchNorm1d(Module):
@@ -137,14 +133,10 @@ class BatchNorm1d(Module):
         self.dim = dim
         self.eps = eps
         self.momentum = momentum
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
 
 class LayerNorm1d(Module):
@@ -152,14 +144,10 @@ class LayerNorm1d(Module):
         super().__init__()
         self.dim = dim
         self.eps = eps
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
 
 class Dropout(Module):
@@ -168,9 +156,7 @@ class Dropout(Module):
         self.p = p
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
 
 
 class Residual(Module):
@@ -179,6 +165,4 @@ class Residual(Module):
         self.fn = fn
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
         raise NotImplementedError()
-        ### END YOUR SOLUTION
